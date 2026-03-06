@@ -2,6 +2,9 @@
 build/
 dist/
 
+# Release zip output
+release/
+
 # Runtime files created by the app when it runs
 config/
 logs/

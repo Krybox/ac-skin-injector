@@ -1,52 +1,53 @@
 # create_shortcut.py
 # ------------------
 # One-time helper script: creates "Assetto Corsa Skin Injector.lnk" on the
-# Windows Desktop pointing to dist\AC_Skin_Injector.exe.
+# Windows Desktop pointing to AC_Skin_Injector.exe in the same folder.
 #
-# Uses only Python stdlib (ctypes + comtypes-free IShellLink via COM).
-# Run once after building the .exe:
+# Extract the release zip anywhere (except Program Files), then run:
 #   python create_shortcut.py
+#
+# No extra dependencies needed — uses only Python stdlib.
 
 import os
 import sys
+import subprocess
 import ctypes
 import ctypes.wintypes
 
-# ── Resolve paths ────────────────────────────────────────────────────────────
-SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
-EXE_PATH    = os.path.join(SCRIPT_DIR, "dist", "AC_Skin_Injector.exe")
-WORK_DIR    = os.path.join(SCRIPT_DIR, "dist")
-ICON_PATH   = os.path.join(SCRIPT_DIR, "resources", "icons", "app_icon.ico")
+# ── Resolve paths ─────────────────────────────────────────────────────────────
+# All paths are relative to wherever this script lives, so the zip can be
+# extracted anywhere and it will still work correctly.
+SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
+EXE_PATH      = os.path.join(SCRIPT_DIR, "AC_Skin_Injector.exe")
+WORK_DIR      = SCRIPT_DIR
+# Use the icon embedded inside the .exe itself — no separate .ico file needed
+ICON_LOCATION = EXE_PATH + ",0"
 SHORTCUT_NAME = "Assetto Corsa Skin Injector.lnk"
 
-# Desktop path via Windows API (works for all locales / custom desktop locations)
+# Resolve the Desktop path via the Windows API so it works for all locales
+# and for users who have moved their Desktop to a custom location.
 CSIDL_DESKTOP = 0
 buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
 ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_DESKTOP, None, 0, buf)
-DESKTOP = buf.value
+DESKTOP       = buf.value
 SHORTCUT_PATH = os.path.join(DESKTOP, SHORTCUT_NAME)
 
-# ── Validation ────────────────────────────────────────────────────────────────
+# ── Validate ──────────────────────────────────────────────────────────────────
 if not os.path.isfile(EXE_PATH):
-    print(f"ERROR: Executable not found: {EXE_PATH}")
-    print("Build the project first with:  pyinstaller build.spec")
+    print(f"ERROR: Could not find AC_Skin_Injector.exe in:\n  {SCRIPT_DIR}")
+    print("Make sure create_shortcut.py is in the same folder as the .exe.")
     sys.exit(1)
 
-# ── COM / IShellLink shortcut creation ────────────────────────────────────────
-# We use Windows Script Host via the shell32 COM object through ctypes,
-# accessed via the 'comtypes'-free approach: PowerShell as a subprocess.
-# This avoids needing pywin32 or comtypes installed.
-
-import subprocess
-
-# Build a small PowerShell one-liner that creates the shortcut
+# ── Create the shortcut via PowerShell WScript.Shell ─────────────────────────
+# PowerShell's WScript.Shell COM object is available on every modern Windows
+# install and requires no extra dependencies.
 ps_script = f"""
 $ws = New-Object -ComObject WScript.Shell
 $sc = $ws.CreateShortcut('{SHORTCUT_PATH.replace("'", "''")}')
-$sc.TargetPath    = '{EXE_PATH.replace("'", "''")}'
+$sc.TargetPath       = '{EXE_PATH.replace("'", "''")}'
 $sc.WorkingDirectory = '{WORK_DIR.replace("'", "''")}'
-$sc.IconLocation  = '{ICON_PATH.replace("'", "''")}',0
-$sc.Description   = 'Assetto Corsa Skin Injector'
+$sc.IconLocation     = '{ICON_LOCATION.replace("'", "''")}'
+$sc.Description      = 'Assetto Corsa Skin Injector'
 $sc.Save()
 Write-Host 'OK'
 """.strip()
@@ -58,9 +59,9 @@ result = subprocess.run(
 )
 
 if result.returncode == 0 and "OK" in result.stdout:
-    print(f"Shortcut created: {SHORTCUT_PATH}")
+    print(f"Shortcut created on Desktop: {SHORTCUT_PATH}")
 else:
-    print("ERROR: PowerShell shortcut creation failed.")
+    print("ERROR: Could not create the shortcut.")
     print("STDOUT:", result.stdout)
     print("STDERR:", result.stderr)
     sys.exit(1)

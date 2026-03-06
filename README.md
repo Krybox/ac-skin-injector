@@ -5,9 +5,22 @@ No Python, no installation, no setup — just download and run.
 
 ## Download
 
-Go to the [Releases page](../../releases) and download `AC_Skin_Injector.exe` from the latest release.
+Go to the [Releases page](../../releases) and download `AC_Skin_Injector_vX.X.X.zip` from the latest release.
 
-Double-click the `.exe` to launch. Config and logs are stored next to the `.exe` (fully portable — put it anywhere you like).
+Extract the zip to any folder on your PC — for example `C:\Tools\AC_Skin_Injector\` or your Desktop.
+
+> **Do not extract into `C:\Program Files\`** — Windows blocks apps in that folder from writing their config and log files next to the `.exe`.
+
+Double-click `AC_Skin_Injector.exe` to launch. Config and logs are created automatically next to the `.exe` on first run (fully portable — move the folder anywhere you like).
+
+### Optional: create a Desktop shortcut
+
+Run `create_shortcut.py` once (Python required) to create a shortcut on your Desktop:
+```
+python create_shortcut.py
+```
+
+Or just right-click `AC_Skin_Injector.exe` → **Send to → Desktop (create shortcut)**.
 
 ## Features
 
@@ -67,16 +80,12 @@ Build the executable:
 pyinstaller build.spec
 ```
 
-Output: `dist\AC_Skin_Injector.exe` — standalone, no install required.
-
-## Creating a Desktop shortcut
-
-Run once after building:
+Assemble the release zip:
 ```
-python create_shortcut.py
+python build_release.py
 ```
 
-Creates `Assetto Corsa Skin Injector.lnk` on your Desktop pointing to the `.exe`.
+Output: `release\AC_Skin_Injector_vX.X.X.zip` — contains the `.exe` and `create_shortcut.py`, ready to upload to GitHub Releases.
 
 ## Running tests
 
