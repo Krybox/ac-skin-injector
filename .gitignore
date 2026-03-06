@@ -1,0 +1,16 @@
+# PyInstaller build output
+build/
+dist/
+
+# Runtime files created by the app when it runs
+config/
+logs/
+temp/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Test cache
+.pytest_cache/
