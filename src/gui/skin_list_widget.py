@@ -14,14 +14,14 @@ Also handles drag-and-drop of ZIP files and folders directly onto the widget.
 
 import sys
 from pathlib import Path
-from typing import List, Optional, Callable
+from typing import List, Optional
 
 from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QLabel, QCheckBox,
     QWidget, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy,
 )
 from PySide6.QtCore import Qt, Signal, QSize
-from PySide6.QtGui import QPixmap, QColor, QFont
+from PySide6.QtGui import QPixmap
 
 from models.skin import Skin
 from models.validation_result import ValidationResult
@@ -59,7 +59,7 @@ class SkinListWidget(QTableWidget):
     COL_NAME    = 2
     COL_STATUS  = 3
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(0, 4, parent)  # 0 rows, 4 columns
 
         self._skins: List[Skin] = []
@@ -68,7 +68,7 @@ class SkinListWidget(QTableWidget):
         self._setup_table()
         self.setAcceptDrops(True)
 
-    def _setup_table(self):
+    def _setup_table(self) -> None:
         """Configures column headers, widths, and general table behaviour."""
         self.setHorizontalHeaderLabels(["", "Preview", "Skin Name", "Status"])
 
@@ -96,7 +96,7 @@ class SkinListWidget(QTableWidget):
     # Public API
     # ------------------------------------------------------------------
 
-    def add_skin(self, skin: Skin, validation: ValidationResult):
+    def add_skin(self, skin: Skin, validation: ValidationResult) -> None:
         """
         Appends a new skin row to the table.
         Called after a skin has been extracted and validated.
@@ -131,7 +131,7 @@ class SkinListWidget(QTableWidget):
         """Returns the current list of staged skins (reflects any renames and checkbox states)."""
         return self._skins
 
-    def rename_skin_at_row(self, row: int, new_name: str):
+    def rename_skin_at_row(self, row: int, new_name: str) -> None:
         """Updates the skin name for the given row after a rename dialog completes."""
         if 0 <= row < len(self._skins):
             self._skins[row].name = new_name
@@ -139,7 +139,7 @@ class SkinListWidget(QTableWidget):
             if item:
                 item.setText(new_name)
 
-    def remove_selected_rows(self):
+    def remove_selected_rows(self) -> None:
         """Removes all currently selected rows from the table."""
         selected_rows = sorted(
             {idx.row() for idx in self.selectedIndexes()}, reverse=True
@@ -153,7 +153,7 @@ class SkinListWidget(QTableWidget):
         # Re-index the validations dict after removal
         self._rebuild_validation_index()
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         """Clears all rows and resets internal state."""
         self.setRowCount(0)
         self._skins.clear()
@@ -256,21 +256,21 @@ class SkinListWidget(QTableWidget):
     # Drag and drop
     # ------------------------------------------------------------------
 
-    def dragEnterEvent(self, event):
+    def dragEnterEvent(self, event) -> None:
         """Accept drag events that carry file/folder URLs."""
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         else:
             event.ignore()
 
-    def dragMoveEvent(self, event):
+    def dragMoveEvent(self, event) -> None:
         """Keep accepting the drag as long as it has URLs."""
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
         else:
             event.ignore()
 
-    def dropEvent(self, event):
+    def dropEvent(self, event) -> None:
         """
         Called when the user drops files/folders onto the table.
         Emits the files_dropped signal with a list of Path objects.
@@ -285,7 +285,7 @@ class SkinListWidget(QTableWidget):
     # Double-click to rename
     # ------------------------------------------------------------------
 
-    def _on_double_click(self, row: int, col: int):
+    def _on_double_click(self, row: int, col: int) -> None:
         """Triggers the rename flow when the Name column is double-clicked."""
         if col == self.COL_NAME and row < len(self._skins):
             self.rename_requested.emit(row, self._skins[row].name)
@@ -294,13 +294,19 @@ class SkinListWidget(QTableWidget):
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _rebuild_validation_index(self):
+    def _rebuild_validation_index(self) -> None:
         """
         Rebuilds the row → ValidationResult mapping after rows are removed.
         Needed because dict keys (row indices) shift when rows are deleted.
+
+        Strategy: collect the surviving ValidationResult values in original order
+        (skipping the removed entries whose keys no longer exist), then reassign
+        them to 0-based sequential keys matching the current row count.
         """
-        new_validations = {}
-        for new_row in range(self.rowCount()):
-            if new_row in self._validations:
-                new_validations[new_row] = self._validations[new_row]
-        self._validations = new_validations
+        # Gather surviving results in ascending key order
+        surviving = [
+            self._validations[key]
+            for key in sorted(self._validations)
+            if key < self.rowCount()
+        ]
+        self._validations = {i: v for i, v in enumerate(surviving)}

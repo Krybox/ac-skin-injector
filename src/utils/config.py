@@ -34,14 +34,14 @@ class Config:
     Automatically creates the file with defaults if it doesn't exist.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         config_dir = get_base_dir() / "config"
         config_dir.mkdir(exist_ok=True)
         self._path = config_dir / "app_config.json"
         self._data = dict(DEFAULT_CONFIG)
         self.load()
 
-    def load(self):
+    def load(self) -> None:
         """
         Reads the config file from disk.
         If the file is missing or corrupted, falls back to defaults.
@@ -59,7 +59,7 @@ class Config:
         else:
             log.info("No config file found, using defaults.")
 
-    def save(self):
+    def save(self) -> None:
         """
         Writes the current config values to disk as JSON.
         """
@@ -74,7 +74,7 @@ class Config:
         """Returns the value for the given config key, or a default if not found."""
         return self._data.get(key, default)
 
-    def set(self, key: str, value):
+    def set(self, key: str, value) -> None:
         """Updates a config value in memory (call save() to persist it)."""
         self._data[key] = value
 

@@ -12,12 +12,13 @@ Contains all the small dialog windows used throughout the application:
 """
 
 from pathlib import Path
+from datetime import datetime
 from typing import Optional, List
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QListWidget, QListWidgetItem, QDialogButtonBox,
-    QMessageBox, QSizePolicy,
+    QMessageBox,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -41,7 +42,7 @@ class ConflictDialog(QDialog):
     Closing the dialog with X cancels the entire injection run.
     """
 
-    def __init__(self, skin_name: str, parent=None):
+    def __init__(self, skin_name: str, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("Skin Already Exists")
         self.setMinimumWidth(380)
@@ -93,15 +94,15 @@ class ConflictDialog(QDialog):
         self._rename_btn.clicked.connect(self._choose_rename)
         self._skip_btn.clicked.connect(self._choose_skip)
 
-    def _choose_overwrite(self):
+    def _choose_overwrite(self) -> None:
         self._action = ConflictAction.OVERWRITE
         self.accept()
 
-    def _choose_rename(self):
+    def _choose_rename(self) -> None:
         self._action = ConflictAction.RENAME
         self.accept()
 
-    def _choose_skip(self):
+    def _choose_skip(self) -> None:
         self._action = ConflictAction.SKIP
         self.accept()
 
@@ -269,7 +270,6 @@ class BackupDialog(QDialog):
     def _format_date(iso_string: str) -> str:
         """Converts an ISO datetime string to a readable 'YYYY-MM-DD HH:MM' format."""
         try:
-            from datetime import datetime
             dt = datetime.fromisoformat(iso_string)
             return dt.strftime("%Y-%m-%d %H:%M")
         except Exception:

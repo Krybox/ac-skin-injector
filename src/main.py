@@ -22,6 +22,8 @@ from gui.styles import apply_stylesheet
 from utils.config import Config
 from utils.logger import log, get_base_dir
 
+APP_VERSION = "1.0.0"
+
 
 def main():
     log.info("=" * 50)
@@ -33,7 +35,7 @@ def main():
     # Create the Qt application
     app = QApplication(sys.argv)
     app.setApplicationName("AC Skin Injector")
-    app.setApplicationVersion("1.0.0")
+    app.setApplicationVersion(APP_VERSION)
 
     # Set the window icon if the icon file exists
     icon_path = get_base_dir() / "resources" / "icons" / "app_icon.png"

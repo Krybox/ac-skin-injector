@@ -30,11 +30,11 @@ class ValidationResult:
     warnings: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
 
-    def add_warning(self, message: str):
+    def add_warning(self, message: str) -> None:
         """Adds a non-blocking warning message."""
         self.warnings.append(message)
 
-    def add_error(self, message: str):
+    def add_error(self, message: str) -> None:
         """Adds a blocking error message and marks the result as invalid."""
         self.errors.append(message)
         self.is_valid = False

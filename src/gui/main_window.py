@@ -22,8 +22,8 @@ from PySide6.QtWidgets import (
     QCheckBox, QFileDialog, QStatusBar, QMessageBox,
     QMenuBar, QMenu, QGroupBox, QSizePolicy,
 )
-from PySide6.QtCore import Qt, QThread, Signal, QObject
-from PySide6.QtGui import QAction
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction, QCloseEvent
 
 from core.ac_detector import find_ac_installation, get_cars_path
 from core.car_scanner import get_car_list, get_installed_skin_names
@@ -40,6 +40,7 @@ from gui.dialogs import ConflictDialog, RenameDialog, BackupDialog
 from gui.styles import apply_stylesheet
 from utils.config import Config
 from utils.logger import log
+from main import APP_VERSION
 
 
 class MainWindow(QMainWindow):
@@ -85,7 +86,7 @@ class MainWindow(QMainWindow):
     # UI Construction
     # ------------------------------------------------------------------
 
-    def _build_menu_bar(self):
+    def _build_menu_bar(self) -> None:
         """Creates the top menu bar with File, Settings, and Help menus."""
         menubar: QMenuBar = self.menuBar()
 
@@ -121,7 +122,7 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self._show_about)
         help_menu.addAction(about_action)
 
-    def _build_central_widget(self):
+    def _build_central_widget(self) -> None:
         """Constructs the main content area of the window."""
         central = QWidget()
         self.setCentralWidget(central)
@@ -258,7 +259,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self._inject_btn)
         return layout
 
-    def _build_status_bar(self):
+    def _build_status_bar(self) -> None:
         """Sets up the status bar at the bottom of the window."""
         self._status_bar = QStatusBar()
         self.setStatusBar(self._status_bar)
@@ -268,7 +269,7 @@ class MainWindow(QMainWindow):
     # AC Path Initialisation
     # ------------------------------------------------------------------
 
-    def _init_ac_path(self):
+    def _init_ac_path(self) -> None:
         """
         On startup, tries to use the cached AC path from config.
         If none is saved (or if auto-detect is enabled), runs auto-detection.
@@ -280,7 +281,7 @@ class MainWindow(QMainWindow):
         elif self._config.get("auto_detect_on_startup", True):
             self._auto_detect_ac()
 
-    def _auto_detect_ac(self):
+    def _auto_detect_ac(self) -> None:
         """Runs the AC installation detector and updates the UI accordingly."""
         self._set_status("Detecting Assetto Corsa installation...")
         found = find_ac_installation()
@@ -296,7 +297,7 @@ class MainWindow(QMainWindow):
                 "Please click 'Browse...' to locate it manually.",
             )
 
-    def _browse_ac_path(self):
+    def _browse_ac_path(self) -> None:
         """Opens a folder browser for the user to manually select the AC installation."""
         folder = QFileDialog.getExistingDirectory(
             self, "Select Assetto Corsa Installation Folder"
@@ -315,7 +316,7 @@ class MainWindow(QMainWindow):
                     "Please select the folder containing the 'content/cars' directory.",
                 )
 
-    def _set_ac_path(self, path: Path):
+    def _set_ac_path(self, path: Path) -> None:
         """
         Updates the AC path in the UI, config, and loads the car list.
         """
@@ -324,7 +325,7 @@ class MainWindow(QMainWindow):
         self._ac_path_input.setText(str(path))
         self._refresh_car_list()
 
-    def _cleanup_all_backups(self):
+    def _cleanup_all_backups(self) -> None:
         """
         Runs expired-backup cleanup once at startup across all cars that have
         a backup folder. Much cheaper than running on every car dropdown change.
@@ -345,7 +346,7 @@ class MainWindow(QMainWindow):
     # Car List Management
     # ------------------------------------------------------------------
 
-    def _refresh_car_list(self):
+    def _refresh_car_list(self) -> None:
         """Scans the AC cars directory and repopulates the car dropdown."""
         if not self._ac_root:
             return
@@ -367,7 +368,7 @@ class MainWindow(QMainWindow):
         self._set_status(f"Loaded {len(self._cars)} cars.")
         log.info("Car list refreshed: %d cars found.", len(self._cars))
 
-    def _on_car_changed(self, index: int):
+    def _on_car_changed(self, index: int) -> None:
         """
         Called when the user picks a different car.
         Updates the info label showing how many skins are already installed.
@@ -400,7 +401,7 @@ class MainWindow(QMainWindow):
     # Adding Skins
     # ------------------------------------------------------------------
 
-    def _browse_add_skin(self):
+    def _browse_add_skin(self) -> None:
         """
         Opens a file/folder browser to let the user select ZIP files or folders.
         Supports selecting multiple files at once.
@@ -416,11 +417,11 @@ class MainWindow(QMainWindow):
         if paths:
             self._process_paths([Path(p) for p in paths])
 
-    def _handle_dropped_files(self, paths: List[Path]):
+    def _handle_dropped_files(self, paths: List[Path]) -> None:
         """Called when the user drops files or folders onto the skin list."""
         self._process_paths(paths)
 
-    def _process_paths(self, paths: List[Path]):
+    def _process_paths(self, paths: List[Path]) -> None:
         """
         Processes a list of dropped or browsed paths.
         Each path can be either a ZIP file or a folder.
@@ -444,7 +445,7 @@ class MainWindow(QMainWindow):
                 f"The following file(s) are not ZIP files or folders and were ignored:\n\n{names}",
             )
 
-    def _add_from_zip(self, zip_path: Path):
+    def _add_from_zip(self, zip_path: Path) -> None:
         """Extracts skins from a ZIP file and adds them to the staging list."""
         self._set_status(f"Extracting {zip_path.name}...")
         try:
@@ -465,13 +466,13 @@ class MainWindow(QMainWindow):
 
         self._set_status(f"Added {len(extracted_paths)} skin(s) from {zip_path.name}.")
 
-    def _add_from_folder(self, folder_path: Path):
+    def _add_from_folder(self, folder_path: Path) -> None:
         """Adds a skin directly from a folder (no extraction needed)."""
         skin = Skin(source_path=folder_path, from_zip=False)
         self._validate_and_add_skin(skin)
         self._set_status(f"Added skin from folder: {folder_path.name}")
 
-    def _validate_and_add_skin(self, skin: Skin):
+    def _validate_and_add_skin(self, skin: Skin) -> None:
         """
         Validates a skin and adds it to the list.
         If the skin is invalid (no livery.png), shows an error and does NOT add it.
@@ -498,18 +499,18 @@ class MainWindow(QMainWindow):
     # Skin List Actions
     # ------------------------------------------------------------------
 
-    def _remove_selected_skins(self):
+    def _remove_selected_skins(self) -> None:
         """Removes the rows currently selected in the skin list."""
         self._skin_list.remove_selected_rows()
         self._update_status_from_list()
 
-    def _clear_all(self):
+    def _clear_all(self) -> None:
         """Clears all staged skins and cleans up extracted temp files."""
         self._skin_list.clear_all()
         cleanup_temp_dir()
         self._set_status("Skin list cleared.")
 
-    def _on_rename_requested(self, row: int, current_name: str):
+    def _on_rename_requested(self, row: int, current_name: str) -> None:
         """Opens the rename dialog when the user double-clicks a skin name."""
         dialog = RenameDialog(current_name, parent=self)
         if dialog.exec():
@@ -522,7 +523,7 @@ class MainWindow(QMainWindow):
     # Injection
     # ------------------------------------------------------------------
 
-    def _run_injection(self):
+    def _run_injection(self) -> None:
         """
         Validates preconditions and runs the full skin injection workflow.
         """
@@ -580,7 +581,7 @@ class MainWindow(QMainWindow):
 
         return action, None
 
-    def _show_injection_summary(self, result: InjectionResult):
+    def _show_injection_summary(self, result: InjectionResult) -> None:
         """Shows a summary dialog after injection completes."""
         summary = result.summary_text()
         self._set_status(f"Done — {summary}")
@@ -599,7 +600,7 @@ class MainWindow(QMainWindow):
     # Backup Dialog
     # ------------------------------------------------------------------
 
-    def _open_backup_dialog(self):
+    def _open_backup_dialog(self) -> None:
         """Opens the Manage Backups dialog for the currently selected car."""
         car_path = self._get_selected_car_path()
         if not car_path:
@@ -633,14 +634,14 @@ class MainWindow(QMainWindow):
     # Dark Mode
     # ------------------------------------------------------------------
 
-    def _toggle_dark_mode(self):
+    def _toggle_dark_mode(self) -> None:
         """Toggles between dark and light mode and saves the preference."""
         self._config.dark_mode = not self._config.dark_mode
         apply_stylesheet(self._app, dark=self._config.dark_mode)
         self._update_dark_mode_action()
         log.info("Dark mode: %s", self._config.dark_mode)
 
-    def _update_dark_mode_action(self):
+    def _update_dark_mode_action(self) -> None:
         """Keeps the menu checkmark in sync with the current dark mode state."""
         self._dark_mode_action.setChecked(self._config.dark_mode)
 
@@ -648,11 +649,11 @@ class MainWindow(QMainWindow):
     # Status Bar
     # ------------------------------------------------------------------
 
-    def _set_status(self, message: str):
+    def _set_status(self, message: str) -> None:
         """Updates the status bar message."""
         self._status_bar.showMessage(message)
 
-    def _update_status_from_list(self):
+    def _update_status_from_list(self) -> None:
         """Refreshes the status bar based on the current contents of the skin list."""
         skins = self._skin_list.get_skins()
         enabled = sum(1 for s in skins if s.enabled)
@@ -662,12 +663,12 @@ class MainWindow(QMainWindow):
     # About Dialog
     # ------------------------------------------------------------------
 
-    def _show_about(self):
+    def _show_about(self) -> None:
         QMessageBox.about(
             self,
             "About AC Skin Injector",
-            "<b>Assetto Corsa Skin Injector</b><br>"
-            "Version 1.0.0<br><br>"
+            f"<b>Assetto Corsa Skin Injector</b><br>"
+            f"Version {APP_VERSION}<br><br>"
             "Easily install car skins into your Assetto Corsa installation.<br><br>"
             "Supports ZIP files and folders with automatic skin detection.",
         )
@@ -676,7 +677,7 @@ class MainWindow(QMainWindow):
     # Window close — save config
     # ------------------------------------------------------------------
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """
         Saves config and cleans up temp files when the window is closed.
         """

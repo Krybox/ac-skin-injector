@@ -31,7 +31,7 @@ class Skin:
     enabled: bool = True                 # Whether the user wants to inject this skin
     from_zip: bool = False               # True when the skin came from a ZIP archive
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """
         If no name was provided, use the source folder's name as the default.
         """

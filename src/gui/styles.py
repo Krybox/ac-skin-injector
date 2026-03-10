@@ -169,21 +169,6 @@ QScrollBar::handle:vertical:hover {
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0px;
 }
-
-/* Label styling */
-QLabel#sectionLabel {
-    font-weight: 600;
-    color: #333333;
-}
-
-/* Drop zone label */
-QLabel#dropZoneLabel {
-    color: #999999;
-    font-size: 12px;
-    border: 2px dashed #cccccc;
-    border-radius: 6px;
-    padding: 12px;
-}
 """
 
 # ---------------------------------------------------------------------------
@@ -360,21 +345,6 @@ QScrollBar::handle:vertical:hover {
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0px;
-}
-
-/* Label styling */
-QLabel#sectionLabel {
-    font-weight: 600;
-    color: #a0a8b8;
-}
-
-/* Drop zone label */
-QLabel#dropZoneLabel {
-    color: #555f70;
-    font-size: 12px;
-    border: 2px dashed #3a3f4b;
-    border-radius: 6px;
-    padding: 12px;
 }
 """
 

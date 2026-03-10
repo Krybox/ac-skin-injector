@@ -51,7 +51,7 @@ def _load_metadata(car_path: Path) -> Dict:
         return {}
 
 
-def _save_metadata(car_path: Path, metadata: Dict):
+def _save_metadata(car_path: Path, metadata: Dict) -> None:
     """Writes the backup metadata dictionary to disk as JSON."""
     meta_path = get_metadata_path(car_path)
     try:

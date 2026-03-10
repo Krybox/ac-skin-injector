@@ -76,7 +76,7 @@ def validate_skin(skin_path: Path) -> ValidationResult:
     return result
 
 
-def _validate_ui_skin_json(json_path: Path, result: ValidationResult):
+def _validate_ui_skin_json(json_path: Path, result: ValidationResult) -> None:
     """
     Attempts to parse ui_skin.json and adds a warning if it's not valid JSON.
     We only check that the file is parseable — we don't enforce which fields exist.
