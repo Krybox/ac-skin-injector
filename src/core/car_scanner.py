@@ -11,6 +11,7 @@ from typing import List, Tuple
 import json
 
 from utils.logger import log
+from core.backup_manager import BACKUP_FOLDER_NAME
 
 
 def get_car_list(cars_path: Path) -> List[Tuple[str, str]]:
@@ -81,5 +82,5 @@ def get_installed_skin_names(car_path: Path) -> List[str]:
     return [
         d.name
         for d in skins_path.iterdir()
-        if d.is_dir() and d.name != ".ac_skin_backups"
+        if d.is_dir() and d.name != BACKUP_FOLDER_NAME
     ]

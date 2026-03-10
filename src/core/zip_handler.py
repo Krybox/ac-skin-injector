@@ -13,11 +13,10 @@ InvalidSkinZipError is raised with a descriptive message for the user.
 
 import zipfile
 import shutil
-import sys
 from pathlib import Path, PurePosixPath
 from typing import List
 
-from utils.logger import log
+from utils.logger import log, get_base_dir
 
 
 class InvalidSkinZipError(Exception):
@@ -30,12 +29,7 @@ def get_temp_dir() -> Path:
     Returns the path to the temporary extraction folder next to the .exe.
     Creates it if it doesn't exist yet.
     """
-    if getattr(sys, "frozen", False):
-        base = Path(sys.executable).parent
-    else:
-        base = Path(__file__).parent.parent.parent
-
-    temp_dir = base / "temp"
+    temp_dir = get_base_dir() / "temp"
     temp_dir.mkdir(exist_ok=True)
     return temp_dir
 

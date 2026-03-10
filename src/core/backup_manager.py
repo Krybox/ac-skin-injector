@@ -79,7 +79,9 @@ def create_backup(car_path: Path, skin_name: str, retention_days: int = 30) -> b
     backup_dir = get_backup_dir(car_path)
     backup_dir.mkdir(exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Capture the timestamp once so the folder name and metadata are always in sync
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
     backup_name = f"{skin_name}_{timestamp}"
     backup_dest = backup_dir / backup_name
 
@@ -94,8 +96,8 @@ def create_backup(car_path: Path, skin_name: str, retention_days: int = 30) -> b
     metadata = _load_metadata(car_path)
     metadata[backup_name] = {
         "original_name": skin_name,
-        "created": datetime.now().isoformat(),
-        "expires": (datetime.now() + timedelta(days=retention_days)).isoformat(),
+        "created": now.isoformat(),
+        "expires": (now + timedelta(days=retention_days)).isoformat(),
     }
     _save_metadata(car_path, metadata)
 

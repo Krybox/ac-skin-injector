@@ -7,20 +7,8 @@ making the app fully portable (no registry or AppData writes).
 """
 
 import json
-import sys
 from pathlib import Path
-from utils.logger import log
-
-
-def get_base_dir() -> Path:
-    """
-    Returns the directory where the executable (or main script) lives.
-    Ensures the config folder is always created next to the .exe.
-    """
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    else:
-        return Path(__file__).parent.parent.parent
+from utils.logger import log, get_base_dir
 
 
 # Default values used when no config file exists yet

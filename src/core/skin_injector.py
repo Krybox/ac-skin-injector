@@ -123,16 +123,19 @@ def inject_skins(
                 continue
 
             elif action == ConflictAction.RENAME and new_name:
-                # Update both the skin object and the record with the new name
-                skin.name = new_name
-                record.final_name = new_name
-                target_path = skins_dir / new_name
-                log.info("Skin '%s' renamed to '%s'", record.skin_name, new_name)
+                # Use a local resolved_name so we never mutate the Skin object
+                # (the GUI list still holds the original name if injection fails)
+                resolved_name = new_name
+                record.final_name = resolved_name
+                target_path = skins_dir / resolved_name
+                log.info("Skin '%s' will be saved as '%s'", record.skin_name, resolved_name)
+            else:
+                resolved_name = skin.name
 
-            # For OVERWRITE (or RENAME with a name that still conflicts),
-            # create a backup before deleting the existing folder
+            # Back up the *existing* folder under its current on-disk name,
+            # not the new name the user just chose.
             if target_path.exists() and create_backups:
-                create_backup(car_path, skin.name, retention_days)
+                create_backup(car_path, resolved_name, retention_days)
 
         # --- Copy the skin folder to the destination ---
         try:
@@ -143,7 +146,7 @@ def inject_skins(
             shutil.copytree(skin.source_path, target_path)
 
             record.success = True
-            log.info("Injected skin '%s' into '%s'", skin.name, car_path.name)
+            log.info("Injected skin '%s' into '%s'", record.final_name or skin.name, car_path.name)
 
         except Exception as e:
             record.error = str(e)
