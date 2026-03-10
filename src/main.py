@@ -22,7 +22,7 @@ from gui.styles import apply_stylesheet
 from utils.config import Config
 from utils.logger import log, get_base_dir
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.3"
 
 
 def main():

@@ -22,7 +22,7 @@ import zipfile
 
 # ── Version ───────────────────────────────────────────────────────────────────
 # Bump this before each release.
-VERSION = "1.0.0"
+VERSION = "1.0.3"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 ROOT          = os.path.dirname(os.path.abspath(__file__))
