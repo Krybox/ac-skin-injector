@@ -7,14 +7,15 @@ if available, its human-readable display name from ui_car.json.
 """
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 import json
 
 from utils.logger import log
 from core.backup_manager import BACKUP_FOLDER_NAME
+from models.types import CarEntry
 
 
-def get_car_list(cars_path: Path) -> List[Tuple[str, str]]:
+def get_car_list(cars_path: Path) -> List[CarEntry]:
     """
     Scans the given cars directory and returns a list of (folder_name, display_name) tuples.
 
@@ -27,7 +28,7 @@ def get_car_list(cars_path: Path) -> List[Tuple[str, str]]:
         log.error("Cars path does not exist or is not a directory: %s", cars_path)
         return []
 
-    cars: List[Tuple[str, str]] = []
+    cars: List[CarEntry] = []
 
     for car_dir in cars_path.iterdir():
         # Only process actual directories (skip files)

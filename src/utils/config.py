@@ -82,7 +82,7 @@ class Config:
 
     @property
     def ac_path(self) -> str:
-        return self._data.get("ac_installation_path", "")
+        return self._data.get("ac_installation_path", DEFAULT_CONFIG["ac_installation_path"])
 
     @ac_path.setter
     def ac_path(self, value: str):
@@ -90,7 +90,7 @@ class Config:
 
     @property
     def dark_mode(self) -> bool:
-        return self._data.get("dark_mode_enabled", False)
+        return self._data.get("dark_mode_enabled", DEFAULT_CONFIG["dark_mode_enabled"])
 
     @dark_mode.setter
     def dark_mode(self, value: bool):
@@ -98,7 +98,7 @@ class Config:
 
     @property
     def create_backups(self) -> bool:
-        return self._data.get("create_backups", True)
+        return self._data.get("create_backups", DEFAULT_CONFIG["create_backups"])
 
     @create_backups.setter
     def create_backups(self, value: bool):
@@ -106,7 +106,7 @@ class Config:
 
     @property
     def backup_retention_days(self) -> int:
-        return self._data.get("backup_retention_days", 30)
+        return self._data.get("backup_retention_days", DEFAULT_CONFIG["backup_retention_days"])
 
     @backup_retention_days.setter
     def backup_retention_days(self, value: int):
@@ -114,7 +114,7 @@ class Config:
 
     @property
     def last_selected_car(self) -> str:
-        return self._data.get("last_selected_car", "")
+        return self._data.get("last_selected_car", DEFAULT_CONFIG["last_selected_car"])
 
     @last_selected_car.setter
     def last_selected_car(self, value: str):

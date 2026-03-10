@@ -14,7 +14,7 @@ Responsibilities:
 """
 
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -34,6 +34,7 @@ from core.backup_manager import (
     cleanup_old_backups, get_available_backups, restore_backup
 )
 from models.skin import Skin
+from models.types import CarEntry, BackupInfo
 from gui.skin_list_widget import SkinListWidget
 from gui.dialogs import ConflictDialog, RenameDialog, BackupDialog
 from gui.styles import apply_stylesheet
@@ -52,7 +53,7 @@ class MainWindow(QMainWindow):
 
         self._config = config
         self._app = app          # Reference to QApplication for stylesheet switching
-        self._cars: List[Tuple[str, str]] = []   # (folder_name, display_name)
+        self._cars: List[CarEntry] = []  # (folder_name, display_name)
         self._ac_root: Optional[Path] = None
 
         self.setWindowTitle("Assetto Corsa Skin Injector")
@@ -76,6 +77,9 @@ class MainWindow(QMainWindow):
 
         # Auto-detect or load cached AC path on startup
         self._init_ac_path()
+
+        # Clean up expired backups once at startup (not on every car switch)
+        self._cleanup_all_backups()
 
     # ------------------------------------------------------------------
     # UI Construction
@@ -217,7 +221,8 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(group)
         layout.setSpacing(20)
 
-        self._backup_checkbox = QCheckBox("Create backups (auto-delete after 30 days)")
+        retention = self._config.backup_retention_days
+        self._backup_checkbox = QCheckBox(f"Create backups (auto-delete after {retention} days)")
         self._backup_checkbox.setChecked(self._config.create_backups)
         self._backup_checkbox.toggled.connect(
             lambda v: setattr(self._config, "create_backups", v)
@@ -319,6 +324,23 @@ class MainWindow(QMainWindow):
         self._ac_path_input.setText(str(path))
         self._refresh_car_list()
 
+    def _cleanup_all_backups(self):
+        """
+        Runs expired-backup cleanup once at startup across all cars that have
+        a backup folder. Much cheaper than running on every car dropdown change.
+        """
+        if not self._ac_root:
+            return
+        cars_path = get_cars_path(self._ac_root)
+        if not cars_path.is_dir():
+            return
+        total = 0
+        for car_dir in cars_path.iterdir():
+            if car_dir.is_dir():
+                total += cleanup_old_backups(car_dir)
+        if total:
+            log.info("Startup cleanup: removed %d expired backup(s).", total)
+
     # ------------------------------------------------------------------
     # Car List Management
     # ------------------------------------------------------------------
@@ -360,13 +382,8 @@ class MainWindow(QMainWindow):
 
         self._config.last_selected_car = folder_name
 
-        # Run backup cleanup for the newly selected car on each switch
-        car_path = get_cars_path(self._ac_root) / folder_name
-        deleted = cleanup_old_backups(car_path)
-        if deleted:
-            log.info("Cleaned up %d expired backup(s) for %s.", deleted, folder_name)
-
         # Show how many skins are already installed for context
+        car_path = get_cars_path(self._ac_root) / folder_name
         existing = get_installed_skin_names(car_path)
         self._car_info_label.setText(f"{len(existing)} skin(s) installed")
 
@@ -408,18 +425,24 @@ class MainWindow(QMainWindow):
         Processes a list of dropped or browsed paths.
         Each path can be either a ZIP file or a folder.
         Extracts ZIPs, validates each found skin, and adds valid/warned skins to the list.
+        Unsupported files are collected and shown in a single warning dialog.
         """
+        unsupported = []
         for path in paths:
             if path.suffix.lower() == ".zip":
                 self._add_from_zip(path)
             elif path.is_dir():
                 self._add_from_folder(path)
             else:
-                QMessageBox.warning(
-                    self,
-                    "Unsupported File",
-                    f"'{path.name}' is not a ZIP file or folder and will be ignored.",
-                )
+                unsupported.append(path.name)
+
+        if unsupported:
+            names = "\n".join(f"  • {n}" for n in unsupported)
+            QMessageBox.warning(
+                self,
+                "Unsupported Files",
+                f"The following file(s) are not ZIP files or folders and were ignored:\n\n{names}",
+            )
 
     def _add_from_zip(self, zip_path: Path):
         """Extracts skins from a ZIP file and adds them to the staging list."""
@@ -552,8 +575,8 @@ class MainWindow(QMainWindow):
                 new_name = rename_dialog.get_new_name()
                 if new_name:
                     return ConflictAction.RENAME, new_name
-            # User cancelled rename → skip this skin
-            return ConflictAction.SKIP, None
+            # User cancelled the rename dialog → cancel the whole injection run
+            return ConflictAction.CANCEL, None
 
         return action, None
 

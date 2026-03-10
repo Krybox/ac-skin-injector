@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 from utils.logger import log
+from models.types import BackupInfo
 
 # Name of the hidden backup folder inside each car's skins directory
 BACKUP_FOLDER_NAME = ".ac_skin_backups"
@@ -149,7 +150,7 @@ def cleanup_old_backups(car_path: Path) -> int:
     return deleted_count
 
 
-def get_available_backups(car_path: Path) -> List[Dict]:
+def get_available_backups(car_path: Path) -> List[BackupInfo]:
     """
     Returns a list of available backups for the given car, sorted by creation date
     (newest first). Each entry is a dict with: backup_name, original_name, created, expires.
@@ -162,20 +163,20 @@ def get_available_backups(car_path: Path) -> List[Dict]:
         backup_path = get_backup_dir(car_path) / backup_name
         # Only include backups whose folder still exists on disk
         if backup_path.is_dir():
-            backups.append({
-                "backup_name": backup_name,
-                "original_name": info.get("original_name", backup_name),
-                "created": info.get("created", ""),
-                "expires": info.get("expires", ""),
-                "path": backup_path,
-            })
+            backups.append(BackupInfo(
+                backup_name=backup_name,
+                original_name=info.get("original_name", backup_name),
+                created=info.get("created", ""),
+                expires=info.get("expires", ""),
+                path=backup_path,
+            ))
 
     # Sort newest first
     backups.sort(key=lambda x: x["created"], reverse=True)
     return backups
 
 
-def restore_backup(backup_info: Dict, car_path: Path) -> bool:
+def restore_backup(backup_info: BackupInfo, car_path: Path) -> bool:
     """
     Restores a backup by copying it back to the active skins folder.
 

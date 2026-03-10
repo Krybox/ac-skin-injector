@@ -26,6 +26,7 @@ class ConflictAction(Enum):
     OVERWRITE = auto()
     RENAME = auto()
     SKIP = auto()
+    CANCEL = auto()  # User closed the dialog — abort the entire injection run
 
 
 @dataclass
@@ -116,7 +117,11 @@ def inject_skins(
         if target_path.exists():
             action, new_name = on_conflict(skin.name)
 
-            if action == ConflictAction.SKIP:
+            if action == ConflictAction.CANCEL:
+                log.info("User cancelled injection at skin: %s", skin.name)
+                return result  # Stop processing remaining skins
+
+            elif action == ConflictAction.SKIP:
                 record.skipped = True
                 log.info("User skipped skin: %s", skin.name)
                 result.records.append(record)

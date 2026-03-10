@@ -12,7 +12,7 @@ Contains all the small dialog windows used throughout the application:
 """
 
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, List
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
@@ -23,6 +23,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from core.skin_injector import ConflictAction
+from models.types import BackupInfo
 from utils.logger import log
 
 
@@ -37,6 +38,7 @@ class ConflictDialog(QDialog):
       - Overwrite : Replace the existing skin (a backup will be created if enabled).
       - Rename    : Open the RenameDialog to choose a new name.
       - Skip      : Leave the existing skin untouched and skip this injection.
+    Closing the dialog with X cancels the entire injection run.
     """
 
     def __init__(self, skin_name: str, parent=None):
@@ -45,7 +47,7 @@ class ConflictDialog(QDialog):
         self.setMinimumWidth(380)
         self.setModal(True)
 
-        self._action = ConflictAction.SKIP  # Default if dialog is closed without choosing
+        self._action = ConflictAction.CANCEL  # Default if dialog is closed with X
 
         layout = QVBoxLayout(self)
         layout.setSpacing(14)
@@ -172,14 +174,14 @@ class BackupDialog(QDialog):
     lets the user restore one. Opened by clicking 'Manage Backups'.
     """
 
-    def __init__(self, car_name: str, backups: List[Dict], parent=None):
+    def __init__(self, car_name: str, backups: List[BackupInfo], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Manage Backups")
         self.setMinimumSize(500, 380)
         self.setModal(True)
 
-        self._backups = backups         # List of backup dicts from backup_manager
-        self._selected_backup: Optional[Dict] = None
+        self._backups = backups         # List of BackupInfo from backup_manager
+        self._selected_backup: Optional[BackupInfo] = None
 
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -254,7 +256,7 @@ class BackupDialog(QDialog):
         if reply == QMessageBox.StandardButton.Yes:
             self.accept()
 
-    def get_selected_backup(self) -> Optional[Dict]:
+    def get_selected_backup(self) -> Optional[BackupInfo]:
         """
         Returns the backup dict chosen by the user,
         or None if the dialog was cancelled.

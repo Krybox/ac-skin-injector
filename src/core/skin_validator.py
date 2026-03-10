@@ -41,6 +41,7 @@ def validate_skin(skin_path: Path) -> ValidationResult:
     livery = skin_path / "livery.png"
     if livery.exists():
         result.has_livery = True
+        result.is_valid = True  # Skin is valid once the required file is confirmed
         log.debug("livery.png found for skin: %s", skin_path.name)
     else:
         result.add_error(

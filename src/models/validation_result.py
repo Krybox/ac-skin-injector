@@ -23,7 +23,7 @@ class ValidationResult:
         errors       : Blocking issues that prevent injection (e.g. no livery.png).
     """
 
-    is_valid: bool = True
+    is_valid: bool = False
     has_livery: bool = False
     has_preview: bool = False
     has_ui_json: bool = False
