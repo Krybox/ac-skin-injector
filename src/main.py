@@ -21,8 +21,7 @@ from gui.main_window import MainWindow
 from gui.styles import apply_stylesheet
 from utils.config import Config
 from utils.logger import log, get_base_dir
-
-APP_VERSION = "1.0.3"
+from utils.constants import APP_VERSION
 
 
 def main():

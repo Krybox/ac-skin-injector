@@ -40,7 +40,7 @@ from gui.dialogs import ConflictDialog, RenameDialog, BackupDialog
 from gui.styles import apply_stylesheet
 from utils.config import Config
 from utils.logger import log
-from main import APP_VERSION
+from utils.constants import APP_VERSION
 
 
 class MainWindow(QMainWindow):
