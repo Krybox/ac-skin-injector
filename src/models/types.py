@@ -8,8 +8,7 @@ dictionaries a single, authoritative schema.
 """
 
 from pathlib import Path
-from typing import Tuple
-from typing_extensions import TypedDict
+from typing import Tuple, TypedDict
 
 
 # A (folder_name, display_name) pair representing a car in the dropdown.
